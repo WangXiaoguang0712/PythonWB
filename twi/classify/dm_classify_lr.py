@@ -156,4 +156,4 @@ if __name__ == "__main__":
     print lr.complexity
     #rs = lr.testAccurency(test_x,test_y)
     lr.showLR(X,Y)
-    lr.showTheta()
+    # lr.showTheta()
