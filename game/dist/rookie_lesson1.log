@@ -1,4 +1,0 @@
-Traceback (most recent call last):
-  File "rookie_lesson1.py", line 50, in <module>
-  File "rookie_lesson1.py", line 12, in __init__
-pygame.error: Couldn't open tortoise.bmp
