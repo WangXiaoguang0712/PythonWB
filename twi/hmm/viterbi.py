@@ -38,9 +38,30 @@ def viterbit(obs, states, s_pro, t_pro, e_pro):
     return max_path
 
 
-def viterbi(obs, states, s_pro, t_pro, e_pro):
-    pass
+def viterbi(obs, states, init_pro, tran_pro, emi_pro):
+    path = {s:[] for s in states}
+    print path
+    # first step
+    pre_pro = {}
+    cur_pro = {}
+    for s in states:
+        cur_pro[s] = init_pro[s] * emi_pro[s][obs[0]]
+    # second to the last
+    for i in range(1, len(obs)):
+        pre_pro = cur_pro
+        cur_pro = {}
+        for cur_state in states:
+            #for pre_state in states:
+            max_pro,pre_state =  max(((pre_pro[pre_state] * tran_pro[pre_state][cur_state] * emi_pro[cur_state][obs[i]], pre_state)  for pre_state in states), key=lambda x:x[0])
+            path[cur_state].append(pre_state)
+            path[cur_state].append(pre_pro[pre_state])
+            cur_pro[cur_state] = max_pro
+        print(path)
+    for s in states:
+        path[s].append(s)
+        path[s].append(cur_pro[s])
+    print(path)
 
 if __name__ == '__main__':
-	obs = ['normal', 'cold', 'dizzy']
-	print viterbit(obs, states, start_probability, transition_probability, emission_probability)
+    obs = ['normal', 'cold', 'dizzy']
+    print viterbit(obs, states, start_probability, transition_probability, emission_probability)
