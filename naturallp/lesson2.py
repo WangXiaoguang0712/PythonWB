@@ -1,22 +1,6 @@
 # _*_ coding:utf-8 _*_
 import jieba
 import jieba.analyse
-
-# 停用词
-def f4():
-    content = '如果放到post中将出错。'
-    # jieba.analyse.set_stop_words("data/stopwords.txt")
-    tags = jieba.analyse.extract_tags(content, topK=20)
-    #jieba.del_word('出错')
-    print(",".join(tags))
-    print(" ".join(jieba.cut(content)))
-
-# 返回词语在原文的起止位置
-def f5():
-    result = jieba.tokenize(u'永和服装饰品有限公司')
-    for tk in result:
-        print("word %s\t\t start:%s\t\t end:%s" %(tk[0], tk[1], tk[2]))
-
 import nltk
 from nltk.tokenize import word_tokenize
 from nltk.tokenize import sent_tokenize

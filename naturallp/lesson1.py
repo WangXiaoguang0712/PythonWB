@@ -11,21 +11,23 @@ import jieba.posseg
 # 切词
 def f1():
     jieba.analyse.set_stop_words('data/stopwords.txt')
-    jieba.load_userdict('data/userdict.txt')
-    sents = '如果把这句话放在词典中将出错,我要去中国自然博物馆'
+    sents = '小明硕士毕业于中国科学院计算所，后在日本京都大学深造'
+    print 'cut Precise mode:' + '/'.join(jieba.cut(sents))
+    print 'cut All mode:' + '/'.join(jieba.cut(sents, cut_all=True))
+    print('cut_for_search:' +  '/'.join(jieba.cut_for_search(sents)))
+    print('-----' * 40)
+    sents = '如果把这句话放在词典中将出错'
+    print 'Normal:' + '/'.join(jieba.cut(sents))
     jieba.suggest_freq(('中','将'),True)
-    print 'Precise mode:' + '/'.join(jieba.cut(sents))
-    print 'All mode:' + '/'.join(jieba.cut(sents, cut_all=True))
-    print('cut_for_search:' +  ' '.join(jieba.cut_for_search(sents)))
-
-# 抽取关键词,停用词，自定义字典
-def f2():
-    jieba.analyse.set_stop_words('data/stopwords.txt')
-    # jieba.load_userdict('data/userdict.txt')
-    lines = open(r'F:\BaiduYunDownload\Lecture_1\Lecture_1\NBA.txt').read()
-    print(' '.join(jieba.analyse.extract_tags(lines, withWeight=False, allowPOS=('v'))))
-    print('---' * 30)
-    print('/'.join(jieba.analyse.textrank(lines, withWeight=False)))
+    print 'cut suggest_freq:' + '/'.join(jieba.cut(sents))
+    print('-----' * 40)
+    jieba.load_userdict('data/userdict.txt')
+    print 'cut load_userdict:' + '/'.join(jieba.cut(sents))
+    print('-----' * 40)
+    jieba.del_word('出错')
+    print 'cut del_word:' + '/'.join(jieba.cut(sents))
+    print('-----' * 40)
+    print 'extract_tags del_word:' + '/'.join(jieba.analyse.extract_tags(sents, topK=20))
 
 # 添加词性
 def f3():
@@ -33,6 +35,12 @@ def f3():
     for word,flag in words:
         print('%s %s'%(word,flag))
 
+
+# 返回词语在原文的起止位置
+def f5():
+    result = jieba.tokenize(u'永和服装饰品有限公司')
+    for tk in result:
+        print("word %s\t\t start:%s\t\t end:%s" %(tk[0], tk[1], tk[2]))
 
 if __name__ == "__main__":
     f1()
