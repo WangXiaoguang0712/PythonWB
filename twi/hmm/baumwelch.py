@@ -4,10 +4,13 @@ import numpy as np
 __author__ = 'T'
 
 class HMM():
-    def __init__(self, o, ma, mb):
+    def __init__(self, o, ma, mb, err=0.01, iters=1000):
+        self.error_min = err
+        self.max_iters = iters
         self.o = o
         np.flatiter
         self.pai = np.ones(ma.shape[0]) / ma.shape[0]
+        # self.pai = [0.5, 0.5]
         self.ma = ma
         self.mb = mb
 
@@ -30,8 +33,8 @@ class HMM():
                 beta[:, i] = self.ma.dot(beta[:, i + 1] * self.mb[:, self.o[i + 1]])
         return beta
 
-    def _e_proc_(self):
-        zeta = np.zeros((self.ma.shape[0], self.mb.shape[0] , len(self.o)))
+    def _e_proc(self):
+        zeta = np.zeros((self.ma.shape[0], self.mb.shape[0] , len(self.o) - 1))
         alpha = self.forward()
         beta = self.backward()
         for t in range(len(self.o) - 1):
@@ -41,17 +44,36 @@ class HMM():
             # alpha * (B*beta) * A = (2x1)(1x2)(2x2)
             tmp = np.dot(alpha[:, t].reshape(-1, 1), beta_tmp) * self.ma
             zeta[:, :, t] = tmp / denominator
-        gama = np.sum(zeta, axis=1)
-        #print(zeta)
-        #print(alpha)
-        #print(beta)
+        gamma = np.sum(zeta, axis=1)
+        last_pro = alpha[:, -1].reshape(-1, 1)/np.sum(alpha[:, -1])
+        gamma = np.hstack((gamma, last_pro))
+        # gamma[:, -1] = alpha[:, -1]/np.sum(alpha[:, -1])
+        return zeta, gamma
 
+    def _m_proc(self, zeta, gamma):
+        tmp_pai = self.pai
+        tmp_ma = self.ma
+        tmp_mb = self.mb
 
-    def _m_proc(self):
-        pass
+        self.pai = gamma[:,0]
+        # i  ->  j 的均值 / 经过i的均值:注意数组形状
+        self.ma = np.sum(zeta, axis=2) / np.sum(gamma[:, : -1], axis=1).reshape(-1, 1)
+        self.mb = np.zeros_like(self.mb)
+        for i in range(self.mb.shape[1]):
+            vector_obs = np.array([1 if i == x else 0  for x in self.o])
+            self.mb[:, i] = np.sum(gamma * vector_obs, axis=1) / np.sum(gamma, axis=1)
+
+        if np.sum(abs(tmp_pai - self.pai)) < self.error_min and np.sum(abs(tmp_ma - self.ma)) < self.error_min and np.sum(abs(tmp_mb - self.mb)) < self.error_min:
+            return True
+        else:
+            return False
 
     def fit(self):
-        self._e_proc_()
+        for i in range(self.max_iters):
+            zeta, gamma = self._e_proc()
+            if self._m_proc(zeta, gamma):
+                print('success in iter:{0}'.format(i))
+                break
 
     @staticmethod
     def dict2matrix(data, dim1, dim2):
@@ -68,9 +90,11 @@ if __name__ == '__main__':
     A = {"like": {"like": 0.5, "dislike": 0.5}, "dislike": {"like": 0.5, "dislike": 0.5}}
     B = {"like": {"Coquetry": 0.4, "play phone": 0.1, "friendly": 0.3, "leave message": 0.2},
        "dislike": {"Coquetry": 0.1, "play phone": 0.5, "friendly": 0.2, "leave message": 0.2}}
-    o = [1, 2, 0, 2, 3, 0]
+    o = [1, 0, 1, 1 ,2, 0, 1, 2, 3, 0]
     A = HMM.dict2matrix(A, status, status)
     B = HMM.dict2matrix(B, status, observations)
     h = HMM(o, A, B)
     h.fit()
-
+    print(h.pai)
+    print(h.ma)
+    print(h.mb)

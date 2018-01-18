@@ -63,12 +63,12 @@ class HMM:
                     #分子部分以及zeta的值
                     numerator=alpha[i,t]*self.A[i,:]*self.B[:,O[t+1]]*beta[:,t+1]
                     zeta[i,:,t]=numerator/denominator
-            print(zeta)
-            return
             gamma=numpy.sum(zeta,axis=1)
+
             final_numerator=(alpha[:,col-1]*beta[:,col-1]).reshape(-1,1)
             final=final_numerator/numpy.sum(final_numerator)
             gamma=numpy.hstack((gamma,final))
+
             #M-步骤：重新估计参数Pi,A,B
             newPi=gamma[:,0]
             newA=numpy.sum(zeta,axis=2)/numpy.sum(gamma[:,:-1],axis=1)
@@ -86,6 +86,7 @@ class HMM:
             self.A=newA
             self.B=newB
             self.Pi=newPi
+            print self.Pi
         return self.Pi
 
 
