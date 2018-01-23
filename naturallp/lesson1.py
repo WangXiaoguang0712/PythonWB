@@ -2,6 +2,7 @@
 import numpy as np
 import pickle
 import os
+import chardet
 import jieba
 import jieba.analyse
 import jieba.posseg
@@ -42,5 +43,21 @@ def f5():
     for tk in result:
         print("word %s\t\t start:%s\t\t end:%s" %(tk[0], tk[1], tk[2]))
 
+def stopwords(file_path):
+    with open(file_path, 'r') as fr:
+        return [line.strip() for line in fr.readlines()]
+
+# 停用词
+def f6():
+    outstr = ''
+    sents = u'小明硕士毕业于中国科学院计算所，后在日本京都大学深造'
+    l_stopwords = stopwords('data/stopwords.txt')
+    print(l_stopwords[2].decode('utf-8'))
+    for w in jieba.cut(sents):
+        if w.encode('utf-8') not in l_stopwords:
+            outstr += w + ' '
+    return outstr.rstrip(' ')
+
 if __name__ == "__main__":
-    f1()
+    res = f6()
+    print(res)

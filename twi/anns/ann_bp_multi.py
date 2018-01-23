@@ -4,13 +4,13 @@ import numpy as np
 from matplotlib import pyplot as plt
 import sklearn
 from sklearn import datasets
+from sklearn import preprocessing
 from mlxtend.plotting import plot_decision_regions
-# date:2017-12-23 13:49
+# date:2018-01-22 16:58
 __author__ = 'T'
 
-
-class ANN_BP():
-    def __init__(self, topo_stru=[2,2,1], n_iter=20000, epsilon=0.01):
+class ANN_Multi():
+    def __init__(self, topo_stru=[2,2,1], n_iter=20000, epsilon=0.02):
         self.topo_stru = topo_stru
         self.n_iter = n_iter
         self.l_weight = []
@@ -32,9 +32,6 @@ class ANN_BP():
         else:
             return np.tanh(x)
 
-    def calc_accuracy(self):
-        pass
-
     def fit(self, X, y, func):
         if type(X) != np.ndarray or type(y) != np.ndarray:
             raise TypeError('You shoud input correct datatype,such as np.ndarray')
@@ -42,6 +39,7 @@ class ANN_BP():
             raise ValueError('The shape of y is not match X')
         X = np.concatenate((X,np.ones((X.shape[0], 1))),axis=1)
         self.func = func
+
         self.topo_stru = [ x + 1 if i < len(self.topo_stru) - 1 else x for i,x in enumerate(self.topo_stru)]
         # init weight matrix
         for i in range(len(self.topo_stru) - 1):
@@ -51,15 +49,19 @@ class ANN_BP():
             self.l_res = [X]  # convenient for iter
             # forward propagation
             # calc result of each layer
-            for i in range(len(self.topo_stru) - 1):
+            for i in range(len(self.topo_stru) - 2):
                 self.l_res.append(self.func(np.dot(self.l_res[-1], self.l_weight[i])))
 
+            # calc the output
+            output = np.dot(self.l_res[-1], self.l_weight[-1])
+            prob = np.exp(output) / np.sum(np.exp(output), axis=1, keepdims=True)
+            self.l_res.append(prob)
             # back propagation
             # calc err and delta for each layser
             for i in range(1, len(self.topo_stru)):
                 if i == 1:  # final err
-                    l_err = (self.l_res[-i] - y) * self.func(self.l_res[-i],True)  # err * confident
-                    if (n% 2000) == 0:
+                    l_err = self.l_res[-i] - y  #
+                    if (n % 2000) == 0:
                         print "Error:" + str(np.sum(l_err ** 2))
                         # print 'the accuracy of this model is {0}'.format(np.sum(map(lambda x: 1 if x < 0.001 else 0,l_err))*1.0/y.shape[0])
                 else:
@@ -68,41 +70,37 @@ class ANN_BP():
                 delta = -1 * self.epsilon * delta
                 self.l_weight[-i] += delta
         # print result
-        for i,item in enumerate(X):
+        for i, item in enumerate(X):
             print item,y[i],'==>',self.l_res[-1][i]
 
-    def predict(self,X):
+    def predict(self, X):
         X = np.concatenate((X,np.ones((X.shape[0], 1))),axis=1)
-        # calc result of each layer
+        # calc result of each layer except the last layer
         for i in range(len(self.topo_stru) - 1):
             if i == 0:
                 self.l_res.append(self.func(np.dot(X, self.l_weight[i])))
             else:
-                self.l_res.append(self.func(np.dot(self.l_res[-1], self.l_weight[i])))
-        return self.l_res[-1]
+                if i < len(self.topo_stru) - 2:
+                    self.l_res.append(self.func(np.dot(self.l_res[-1], self.l_weight[i])))
+                else:
+                    self.l_res.append(np.dot(self.l_res[-1], self.l_weight[i]))
 
-    def plot_decision_boundary(self, X, y):
-        # 设定最大最小值，附加一点点边缘填充
-        x_min, x_max = X[:, 0].min() - .5, X[:, 0].max() + .5
-        y_min, y_max = X[:, 1].min() - .5, X[:, 1].max() + .5
-        h = 0.01
-        xx, yy = np.meshgrid(np.arange(x_min, x_max, h), np.arange(y_min, y_max, h))
-        # 用预测函数预测一下
-        Z = self.predict(np.c_[xx.ravel(), yy.ravel()])
-        Z = Z.reshape(xx.shape)
-        # 然后画出图
-        plt.contourf(xx, yy, Z, alpha=0.3, levels=np.arange(Z.max() + 2) - 0.1, cmap=plt.cm.Spectral)
-        plt.scatter(X[:, 0], X[:, 1], c=y, alpha=0.8, cmap=plt.cm.Spectral)
-        plt.show()
+        output = np.exp(self.l_res[-1])
+        prob = output / np.sum(output, axis=1, keepdims=True)
+        return np.argmax(prob, axis=1).reshape(-1,1)
 
-if __name__ == "__main__":
+    def test(self, X, y):
+        y_pre = self.predict(X)
+        tmp = [ 1 if np.argmax(y[i]) == y_pre[i] else 0 for i in xrange(y.shape[0])]
+        print(sum(tmp) * 100.0 / len(tmp))
+
+if __name__ == '__main__':
     np.random.seed(0)
-    X,y = datasets.make_moons(n_samples=4, noise=0.5)
-    model = ANN_BP([2,3,1])
-    model.fit(X,y.reshape(-1,1),ANN_BP.active_simoid)
-    model.plot_decision_boundary(X,y)
-    #plot_decision_regions(X,y,model,legend=0)
-    #plt.title("Decision Boundary for hidden layer size %d")
-    #plt.show()
-
-    #print model.predict(X)
+    ohe = preprocessing.OneHotEncoder()
+    ohe.fit([[1],[0]])
+    X,y = datasets.make_moons(n_samples=100, noise=0.2)
+    y = ohe.transform(y.reshape(-1, 1)).toarray()
+    model = ANN_Multi([2,3,2])
+    model.fit(X[:80],y[:80], ANN_Multi.active_simoid)
+    # model.plot_decision_boundary(X,y)
+    model.test(X[80:], y[80:])
