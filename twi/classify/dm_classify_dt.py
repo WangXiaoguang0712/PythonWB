@@ -165,5 +165,6 @@ def main():
     print mytree
     print classify(mytree, labels, [0,0,1,1])
 
-main()
+if __name__ == '__main__':
+    main()
 
