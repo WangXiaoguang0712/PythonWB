@@ -62,6 +62,7 @@ class KMean(object):
             for j in range(k):
                 points_in_cluster = ds[resarray[:,0]==j]
                 center_point[j,:] = np.mean(points_in_cluster,axis=0)
+            self.showcluster(ds, k, center_point, resarray)
         print 'analyze over!'
         return center_point,resarray
 
@@ -79,8 +80,8 @@ class KMean(object):
         if k > len(mark):
             print 'sorry,k is too big for me!'
             return 1
-        print self.ori_center
-        print center_point
+        # print self.ori_center
+        # print center_point
         plt.figure()
         #画所有点
         for i in xrange(n_sample):

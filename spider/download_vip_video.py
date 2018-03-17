@@ -2,7 +2,7 @@
 import urllib
 from bs4 import BeautifulSoup
 from urlparse import urlparse
-import os,chardet,re
+import os,chardet,re,sys
 __author__ = 'T'
 
 def load_detail(url):
@@ -38,6 +38,20 @@ def start_dowload():
     for i in range(1,11):
         print('start parse page {0}'.format(i))
         dowload_ygdy(i)
+
+def schedual(a, b, c):
+    per = 100.0 * a * b / c
+    if per > 100 :
+        per = 100
+    #print '%.2f%%' % per
+    sys.stdout.write("\r%.2f%%" % per + ' complete')
+    sys.stdout.flush()
+
+def downloadnow():
+    weburl = ''
+    local_path = r''
+    urllib.urlretrieve(weburl,local_path,schedual)
+
 
 if __name__ == "__main__":
     start_dowload()

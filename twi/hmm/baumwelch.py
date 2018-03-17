@@ -8,7 +8,7 @@ class HMM():
         self.error_min = err
         self.max_iters = iters
         self.o = o
-        np.flatiter
+        # np.flatiter
         self.pai = np.ones(ma.shape[0]) / ma.shape[0]
         # self.pai = [0.5, 0.5]
         self.ma = ma

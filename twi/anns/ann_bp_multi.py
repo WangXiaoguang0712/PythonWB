@@ -70,8 +70,8 @@ class ANN_Multi():
                 delta = -1 * self.epsilon * delta
                 self.l_weight[-i] += delta
         # print result
-        for i, item in enumerate(X):
-            print item,y[i],'==>',self.l_res[-1][i]
+        #for i, item in enumerate(X):
+        #    print item,y[i],'==>',self.l_res[-1][i]
 
     def predict(self, X):
         X = np.concatenate((X,np.ones((X.shape[0], 1))),axis=1)
