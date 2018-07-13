@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/PythonWB.iml" filepath="$PROJECT_DIR$/.idea/PythonWB.iml" />
+      <module fileurl="file://D:/项目文件/智能诊疗/TextSearchPython/TextSearchPython/.idea/TextSearchPython.iml" filepath="D:/项目文件/智能诊疗/TextSearchPython/TextSearchPython/.idea/TextSearchPython.iml" />
     </modules>
   </component>
 </project>
