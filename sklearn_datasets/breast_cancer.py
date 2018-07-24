@@ -21,8 +21,8 @@ class Cancer(object):
         self.data = ds['data']
         self.target = ds['target']
         self.feature_names = ds['feature_names']
-        self.target_names = ds['target_names']#['malignant' 'benign']
-        self.n_samples,self.n_features = self.data.shape #569，30
+        self.target_names = ds['target_names'] # ['malignant' 'benign']
+        self.n_samples,self.n_features = self.data.shape # 569，30
         #print ds.DESCR
         print self.data[self.target==1].shape
 
@@ -59,5 +59,5 @@ class Cancer(object):
         plt.show()
 
 cncr = Cancer()
-#cncr.showdata_minval_0()
-#cncr.pca_energy()
+# cncr.showdata_minval_0()
+# cncr.pca_energy()
