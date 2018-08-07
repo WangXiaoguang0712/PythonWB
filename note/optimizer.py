@@ -11,10 +11,12 @@ from sklearn.model_selection import StratifiedKFold
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
 from sklearn.linear_model import LogisticRegression
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.neighbors import KNeighborsClassifier
 from sklearn.pipeline import  Pipeline
 from sklearn.model_selection import cross_val_score
 from sklearn.model_selection import learning_curve
-
+from sklearn.ensemble import VotingClassifier
 
 def test_kfold(X_train, y_train):
     # 流水线
@@ -131,6 +133,50 @@ def test_confusion_matrix(X, y, X2, y2):
     plt.ylabel('true label')
     plt.show()
 
+def test_roc(X, y):
+    from sklearn.metrics import roc_curve, auc
+    from scipy import interp
+
+    # 流水线
+    pipe_lr = Pipeline([('scl', StandardScaler()),
+                            ('pca', PCA(n_components=2)),
+                            ('clf', LogisticRegression(random_state=1, penalty='l2'))])
+
+    X_train2 = X[:, [4 ,14]]
+    fig = plt.figure(figsize=(7,5))
+    mean_tpr = 0.0
+    mean_fpr = np.linspace(0, 1, 100)
+    all_tpr = []
+
+    skf = StratifiedKFold(n_splits=3, random_state=1)
+    kfold = skf.split(X_train, y)
+    for i, (train, test) in enumerate(kfold):
+        probs = pipe_lr.fit(X_train2[train], y[train]).predict_proba(X_train2[test])
+        fpr, tpr, threshold = roc_curve(y[test], probs[:, 1], pos_label=1)
+        roc_auc = auc(fpr, tpr)
+        plt.plot(fpr, tpr, lw=1, label='ROC Fold %d (area=%.2f)' % (i+1, roc_auc))
+    plt.plot([0, 0, 1], [0, 1, 1], lw=1, linestyle=':', label='ROC Best ')
+    plt.plot([0, 1], [0, 1], lw=1, linestyle='--', label='Random guess ')
+    plt.xlabel('FP')
+    plt.ylabel('TP')
+    plt.legend(loc=('lower right'))
+    plt.show()
+
+
+def test_intergrate(X, y):
+    clf1 = LogisticRegression(penalty='l2', C=0.001, random_state=1)
+    clf2 = DecisionTreeClassifier(max_depth=1, criterion='entropy', random_state=1)
+    clf3 = KNeighborsClassifier(n_neighbors=1, p=2, metric='minkowski')
+    pip1 = Pipeline([['sc', StandardScaler()],['clf', clf1]])
+    pip3 = Pipeline([('sc', StandardScaler()),('clf', clf3)])
+    clf_labels = ['LogisticRegression', 'Decision Tree', 'KNN']
+    clf4 = VotingClassifier(zip(clf_labels,[pip1, clf2, pip3]), voting='soft')
+    clf_labels.append('Voting')
+    for label, clf in zip(clf_labels, [pip1, clf2, pip3, clf4]):
+        scores = cross_val_score(estimator=clf, X=X, y=y, cv=10, scoring='roc_auc')
+        print("Accuracy %.3f(+/- %.3f) [%s]" % (scores.mean(), scores.std(), label))
+
+
 if __name__ == "__main__":
     # 读取数据
     # df = pd.read_csv('data/breast_cancer.csv', header=None)
@@ -142,12 +188,10 @@ if __name__ == "__main__":
     # 分割
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=1)
 
-    # K折交叉验证
-    # test_kfold(X_train, y_train)
-    # 学习曲线：基于样本量大小 判定是方差与偏差
-    # test_learning_curve(X_train, y_train)
-    # 验证曲线:基于参数 验证过拟合还是欠拟合
-    #test_validation_curve(X_train, y_train)
-    # 网格搜索
-    # test_gridsearchcv(X_train, y_train)
-    test_confusion_matrix(X_train, y_train, X_test, y_test)
+    # test_kfold(X_train, y_train)  # K折交叉验证
+    # test_learning_curve(X_train, y_train)  # 学习曲线：基于样本量大小 判定是方差与偏差
+    # test_validation_curve(X_train, y_train)  # 验证曲线:基于参数 验证过拟合还是欠拟合
+    # test_gridsearchcv(X_train, y_train)  # 网格搜索
+    # test_confusion_matrix(X_train, y_train, X_test, y_test)  # 混淆矩阵
+    # test_roc(X_train, y_train)  # ROC 受试者工作特征曲线
+    test_intergrate(X_train, y_train)
