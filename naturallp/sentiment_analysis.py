@@ -1,10 +1,11 @@
 # _*_ coding:utf-8 _*_
 
-import numpy as np
-import pandas as pd
-import pyprind
 import os
 import re
+import pyprind
+import numpy as np
+import pandas as pd
+from nltk.corpus import stopwords
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfTransformer
 from sklearn.pipeline import Pipeline
@@ -84,13 +85,66 @@ def best_model(X, y, X_test, y_test):
     scores = cross_val_score(estimator=lr_pipe, X=X_test, y=y_test, cv=5)
     print('test CV accuracy: %.3f +/- %.3f' % (np.mean(scores), np.std(scores)))
 
+
+def test_waicun_learning(path):
+    def tokennizer(text):
+        stop = stopwords.words('english')
+        text = re.sub('<[^>]*>', '', str)
+        emotions = re.findall('(?::|;|=)(?:-)?(?:\)|\(|D|P)', text)
+        text = re.sub('[\W]', ' ', text.lower()) + ' '.join(emotions).replace('-', '')
+        tokenized = [ w for w in text.split() if w not in stop]
+        return tokenized
+
+    def stream_docs(path):
+        with open(path, encoding='gb18030', errors='ignore') as f:
+            next(f)
+            for line in f:
+                text, label = line[:-3], int(line[-2])
+                yield text, label
+
+    def get_minibatch(doc_stream, size):
+        docs, y = [], []
+        try:
+            for _ in range(size):
+                doc, label = next(doc_stream)
+                docs.append(doc)
+                y.append(label)
+        except StopIteration:
+            return None, None
+        return docs, y
+
+    from sklearn.feature_extraction.text import HashingVectorizer
+    from sklearn.linear_model import SGDClassifier
+    bar = pyprind.ProgBar(45)
+    classes = np.array([0, 1])
+    vect = HashingVectorizer(decode_error='ignore', n_features= 2 ** 21, preprocessor=None, tokenizer=tokenizer)
+    clf = SGDClassifier(loss='log', max_iter=1, random_state=1)
+    doc_stream = stream_docs(path)
+
+    for _ in range(45):
+        X_train, y_train = get_minibatch(doc_stream, size=1000)
+        if not X_train:
+            break
+        X_train = vect.transform(X_train)
+        clf.partial_fit(X_train, y_train, classes=classes)
+        bar.update()
+
+    X_test, y_test = get_minibatch(doc_stream, 5000)
+    X_test = vect.transform(X_test)
+    print('Accuracy:%.3f '% clf.score(X_test, y_test))
+
+
 if __name__ == "__main__":
+    path = 'data/imdb.csv'
+    """
     # process_data()
-    df = pd.read_csv('data/imdb.csv')
+    df = pd.read_csv(path)
     print(df.loc[5, 'review'][-50:])
     X_train = df.loc[:25000, 'review'].values
     y_train = df.loc[:25000, 'sentiment'].values
     X_test = df.loc[25000:, 'review'].values
     y_test = df.loc[25000:, 'sentiment'].values
     # optimize(X_train, y_train)
-    best_model(X_train, y_train, X_test, y_test)
+    # best_model(X_train, y_train, X_test, y_test)
+    """
+    test_waicun_learning(path)
