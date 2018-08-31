@@ -87,8 +87,9 @@ def best_model(X, y, X_test, y_test):
 
 
 def test_waicun_learning(path):
-    def tokennizer(text):
-        stop = stopwords.words('english')
+    stop = stopwords.words('english')
+    print(stop)
+    def tokennizer(str):
         text = re.sub('<[^>]*>', '', str)
         emotions = re.findall('(?::|;|=)(?:-)?(?:\)|\(|D|P)', text)
         text = re.sub('[\W]', ' ', text.lower()) + ' '.join(emotions).replace('-', '')
@@ -115,6 +116,7 @@ def test_waicun_learning(path):
 
     from sklearn.feature_extraction.text import HashingVectorizer
     from sklearn.linear_model import SGDClassifier
+    import pickle
     bar = pyprind.ProgBar(45)
     classes = np.array([0, 1])
     vect = HashingVectorizer(decode_error='ignore', n_features= 2 ** 21, preprocessor=None, tokenizer=tokenizer)
@@ -132,6 +134,9 @@ def test_waicun_learning(path):
     X_test, y_test = get_minibatch(doc_stream, 5000)
     X_test = vect.transform(X_test)
     print('Accuracy:%.3f '% clf.score(X_test, y_test))
+
+    # pickle.dump(stop, open(r'E:\PythonWB\web\data\stopwords.pkl', 'wb'))
+    # pickle.dump(clf, open(r'E:\PythonWB\web\data\classifier.pkl', 'wb'))
 
 
 if __name__ == "__main__":
