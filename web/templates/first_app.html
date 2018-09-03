@@ -1,14 +1,17 @@
-<!DOCTYPE html>
+
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <title></title>
+    <link rel="stylesheet" href="{{url_for('static', filename='main.css')}}"/>
 </head>
 <body>
+<div class="main">
     <form action="/appraisal" method="POST">
-        <span>pleare enter your movie review:</span>
-        <textarea name="review" ID="review"></textarea>
-        <button type="submit">提交</button>
+        <h3>请输入您的评价：</h3>
+        <textarea name="review" ID="review" cols="100" rows="5"></textarea>
+        <div><button type="submit">提交</button></div>
     </form>
+</div>
 </body>
 </html>

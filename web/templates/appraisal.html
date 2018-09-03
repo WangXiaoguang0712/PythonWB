@@ -1,10 +1,24 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
     <meta charset="UTF-8">
-    <title></title>
+    <title>appraisal</title>
+    <link rel="stylesheet" href="{{url_for('static', filename='main.css')}}"/>
 </head>
 <body>
-{{review}}
+<div class="main">
+    <h2>您的评价 ： </h2>
+    <div>{{review}}</div>
+    <h3>分析： </h3>
+    <div>您的评价是“{{res[0]}}” （可能性是：{{res[1]}}%）</div>
+
+    <div id="button">
+        <form action="/thanks" method="post">
+            <input type="submit" value="正确" name="feedback" >
+            <input type="submit" value="不正确" name="feedback" >
+            <input type="hidden" value="{{res[0]}}" name="predict">
+            <input type="hidden" value="{{review}}" name="review">
+        </form>
+    </div>
+</div>
 </body>
 </html>
