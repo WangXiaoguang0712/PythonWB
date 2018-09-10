@@ -17,7 +17,7 @@ class PCA(object):
 
 
     def showcontribution(self, X):
-        print self.contribution_
+        print(self.contribution_)
         plt.figure()
         plt.subplot(111)
         xxx = range(1, self.n_all_component + 1)
