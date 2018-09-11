@@ -15,11 +15,17 @@ from sklearn.linear_model import ElasticNet
 from sklearn.preprocessing import PolynomialFeatures
 from sklearn.metrics import mean_squared_error
 from sklearn.metrics import r2_score
+from sklearn.tree import DecisionTreeRegressor
 
 def load_data():
     df = pd.read_csv('data/housing.csv', header=None, sep='\s+')
     df.columns = np.concatenate((load_boston().feature_names, ['MEDV']))
     return df
+
+def lin_regplot(X, y, model):
+    plt.scatter(X, y, c='blue')
+    plt.plot(X, model.predict(X), color='red')
+    return None
 
 def test_sandiatu():
     '''
@@ -154,6 +160,8 @@ def test_polynomial():
     plt.show()
 
     # 评价
+    # from sklearn.metrics import r2_score
+    # from sklearn.metrics import mean_squared_error
     #print('Traing MSE linear: %.3f, quadratic: %.3f' % (mean_squared_error(y, y_line_pred),
     #                                                    mean_squared_error(y, y_quad_pred)))
     print('Traing R^2 linear: %.3f, quadratic: %.3f, cubic:%.3f' % (r2_linear,
@@ -161,5 +169,19 @@ def test_polynomial():
                                                         r2_cubic))
 
 
+def test_decisiontree():
+    # 加载数据
+    df = load_data()
+    X = df[['LSTAT']].values
+    y = df[['MEDV']].values
+    tree = DecisionTreeRegressor(max_depth=3)
+    tree.fit(X, y)
+    sort_idx = X.flatten().argsort()
+    lin_regplot(X[sort_idx], y[sort_idx], tree)
+    plt.xlabel('% lstat')
+    plt.ylabel('price')
+    plt.show()
+
+
 if __name__ == "__main__":
-    test_polynomial()
+    test_decisiontree()
