@@ -4,6 +4,11 @@ __author__ = 'T'
 from sklearn.datasets import make_blobs
 import matplotlib.pyplot as plt
 from sklearn.cluster import KMeans
+import numpy as np
+import pandas as pd
+from scipy.spatial.distance import squareform, pdist
+from scipy.cluster.hierarchy import linkage
+from scipy.cluster.hierarchy import dendrogram
 
 def make_data(is_show=True):
     X, y = make_blobs(n_samples=150, n_features=2, centers=3, cluster_std=0.5, shuffle=True, random_state=0)
@@ -12,7 +17,12 @@ def make_data(is_show=True):
         plt.show()
     return X, y
 
+
 def test_kmeans():
+    '''
+    KMean 示例
+    :return:
+    '''
     X, y = make_data(False)
     km = KMeans(n_clusters=3, init='random', n_init=10, max_iter=300, tol=1e-04, random_state=0)
     # n_clusters: 中心点；n_init： 随机生成10组中心点计算10次，选择最好MSE最小的一次；max_iter: 最大循环次数
@@ -27,5 +37,63 @@ def test_kmeans():
     plt.grid()
     plt.show()
 
+
+def test_elbow():
+    '''
+    确定合适的簇数。
+    :return:
+    '''
+    X, y = make_data(False)
+    dist = []
+    for i in range(1, 11):
+        km = KMeans(n_clusters=i, init='random', n_init=10, max_iter=300, tol=1e-04, random_state=0)
+        km.fit(X, y)
+        dist.append(km.inertia_)
+    plt.plot([ x for x in range(1, 11)], dist, c='lightblue', marker='o', label='elbow')
+    plt.xlabel('number of cluesters')
+    plt.ylabel('dist')
+    plt.show()
+
+
+def test_agglomerative():
+    np.random.seed(123)
+    variables = ['X', 'Y', 'Z']
+    labels = ['ID_0', 'ID_1', 'ID_2', 'ID_3', 'ID_4']
+    X = np.random.random_sample([5, 3]) * 10
+    df = pd.DataFrame(X, columns=variables, index=labels)
+    dist = pdist(X, metric='euclidean')  # pdist: 两两行向量之间的距离，返回1 * n 的向量
+    sf = squareform(dist)  # squareform 将pdist 的结果转变为对称矩阵的形式。
+    df_row_dist = pd.DataFrame(sf, columns=labels, index=labels)
+    row_cluster = linkage(df_row_dist.values, method='complete', metric='euclidean')
+    df_row_cluster = pd.DataFrame(row_cluster,
+                                  columns=['row label 1', 'row_label 2', 'distance', 'no in cluster'],
+                                  index=[ 'cluster %s' % (i + 1) for i in range(row_cluster.shape[0])])
+    # print(df_row_cluster)  # 每一行代表一次合并
+    """
+    row_dendr = dendrogram(row_cluster, labels=labels)
+    plt.tight_layout()
+    plt.ylabel('Euclidean distance')
+    plt.show()
+    """
+    fig = plt.figure(figsize=(6, 6))
+    axd = fig.add_axes([0.09, 0.1, 0.2, 0.6])
+    row_dendr = dendrogram(row_cluster, orientation='left')
+    df_rowclust = df.ix[row_dendr['leaves'][::-1]]
+    print(df_rowclust)
+    axm = fig.add_axes([0.23, 0.1, 0.6, 0.6])
+    cax = axm.matshow(df_rowclust, interpolation='nearest', cmap='hot_r')
+    axd.set_xticks([])
+    axd.set_yticks([])
+
+    for i in axd.spines.values():
+        i.set_visible(False)  # 边框
+    fig.colorbar(cax)
+    axd.set_title('axd')
+    axm.set_title('axm')
+    axm.set_xticklabels([''] + list(df_rowclust.columns))
+    axm.set_yticklabels([''] + list(df_rowclust.index))
+    print([''] + list(df_rowclust.columns))
+    plt.show()
+
 if __name__ == "__main__":
-    test_kmeans()
+    test_agglomerative()
