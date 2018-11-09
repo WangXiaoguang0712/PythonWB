@@ -2,8 +2,11 @@
 __author__ = 'T'
 
 from sklearn.datasets import make_blobs
+from sklearn.datasets import make_moons
 import matplotlib.pyplot as plt
 from sklearn.cluster import KMeans
+from sklearn.cluster import AgglomerativeClustering
+from sklearn.cluster import DBSCAN
 import numpy as np
 import pandas as pd
 from scipy.spatial.distance import squareform, pdist
@@ -56,6 +59,10 @@ def test_elbow():
 
 
 def test_agglomerative():
+    '''
+    层次聚类
+    :return:
+    '''
     np.random.seed(123)
     variables = ['X', 'Y', 'Z']
     labels = ['ID_0', 'ID_1', 'ID_2', 'ID_3', 'ID_4']
@@ -95,5 +102,29 @@ def test_agglomerative():
     print([''] + list(df_rowclust.columns))
     plt.show()
 
+
+def test_dbscan():
+    f, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(9, 3))
+    X, y = make_moons(n_samples=200, noise=0.05, random_state=0)
+    km = KMeans(n_clusters=2, random_state=0)
+    y_km = km.fit_predict(X)
+    ax1.scatter(X[y_km == 0, 0], X[y_km == 0, 1], c='lightblue', marker='o')
+    ax1.scatter(X[y_km == 1, 0], X[y_km == 1, 1], c='lightgreen', marker='v')
+    ax1.set_title('kmean clustering')
+    ac = AgglomerativeClustering(n_clusters=2, affinity='euclidean', linkage='complete')
+    y_ac = ac.fit_predict(X)
+    ax2.scatter(X[y_ac == 0, 0], X[y_ac == 0, 1], c='lightblue', marker='o')
+    ax2.scatter(X[y_ac == 1, 0], X[y_ac == 1, 1], c='lightgreen', marker='v')
+    ax2.set_title('Agglomeraive clustering')
+    db = DBSCAN(eps=0.2, min_samples=5, metric='euclidean')
+    y_db = db.fit_predict(X)
+    ax3.scatter(X[y_db == 0, 0], X[y_db == 0, 1], c='lightblue', marker='o')
+    ax3.scatter(X[y_db == 1, 0], X[y_db == 1, 1], c='lightgreen', marker='v')
+    ax3.set_title('DBSCAN clustering')
+
+    plt.show()
+
+
+
 if __name__ == "__main__":
-    test_agglomerative()
+    test_dbscan()

@@ -4,7 +4,8 @@ import numpy as np
 from matplotlib import pyplot as plt
 import sklearn
 from sklearn import datasets
-from mlxtend.plotting import plot_decision_regions
+from twi.com.utility import plot_decision_regions
+# from mlxtend.plotting import plot_decision_regions
 # date:2017-12-23 13:49
 __author__ = 'T'
 

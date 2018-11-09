@@ -21,7 +21,7 @@ data：将images按行展开成一行
 class Digits(object):
     def __init__(self):
         ds = load_digits()
-        #print ds.DESCR
+        print(ds['target_names'])
         self.img = ds.images#保存8*8的图像，里面的元素是float64类型,[8,8]二维数组
         self.data = ds['data']#将images按行展开成一行，共有1797行
         self.target = ds['target']

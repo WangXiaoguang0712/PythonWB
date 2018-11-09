@@ -5,7 +5,8 @@ from matplotlib import pyplot as plt
 import sklearn
 from sklearn import datasets
 from sklearn import preprocessing
-from mlxtend.plotting import plot_decision_regions
+# from mlxtend.plotting import plot_decision_regions
+from twi.com.utility import plot_decision_regions
 # date:2018-01-22 16:58
 __author__ = 'T'
 
@@ -37,7 +38,7 @@ class ANN_Multi():
             raise TypeError('You shoud input correct datatype,such as np.ndarray')
         if X.shape[0] != y.shape[0] or X.ndim != y.ndim:
             raise ValueError('The shape of y is not match X')
-        X = np.concatenate((X,np.ones((X.shape[0], 1))),axis=1)
+        X = np.concatenate((X, np.ones((X.shape[0], 1))), axis=1)
         self.func = func
 
         self.topo_stru = [ x + 1 if i < len(self.topo_stru) - 1 else x for i,x in enumerate(self.topo_stru)]
@@ -53,19 +54,23 @@ class ANN_Multi():
                 self.l_res.append(self.func(np.dot(self.l_res[-1], self.l_weight[i])))
 
             # calc the output
+
             output = np.dot(self.l_res[-1], self.l_weight[-1])
+            # print(n, output[0])
             prob = np.exp(output) / np.sum(np.exp(output), axis=1, keepdims=True)
             self.l_res.append(prob)
             # back propagation
             # calc err and delta for each layser
             for i in range(1, len(self.topo_stru)):
                 if i == 1:  # final err
-                    l_err = self.l_res[-i] - y  #
-                    if (n % 2000) == 0:
-                        print "Error:" + str(np.sum(l_err ** 2))
+                    l_err = (self.l_res[-i] - y) / X.shape[0]  #
+                    if (n % 100) == 0:
+                        print("Error:" + str(np.sum(l_err ** 2)))
                         # print 'the accuracy of this model is {0}'.format(np.sum(map(lambda x: 1 if x < 0.001 else 0,l_err))*1.0/y.shape[0])
                 else:
-                    l_err = l_err.dot(self.l_weight[-i + 1].T) * self.func(self.l_res[-i],True)
+                    l_err = l_err.dot(self.l_weight[-i + 1].T) * self.func(self.l_res[-i], True) # 非最终输出层
+                # 交叉熵代价函数[最后一层]（a - y）* x / n
+                # 均方差代价函数[最后一层] (a - y) * a' * x
                 delta = self.l_res[-i - 1].T.dot(l_err)  # derivatives of loss function
                 delta = -1 * self.epsilon * delta
                 self.l_weight[-i] += delta
@@ -91,7 +96,7 @@ class ANN_Multi():
 
     def test(self, X, y):
         y_pre = self.predict(X)
-        tmp = [ 1 if np.argmax(y[i]) == y_pre[i] else 0 for i in xrange(y.shape[0])]
+        tmp = [ 1 if np.argmax(y[i]) == y_pre[i] else 0 for i in range(y.shape[0])]
         print(sum(tmp) * 100.0 / len(tmp))
 
 if __name__ == '__main__':
@@ -100,6 +105,7 @@ if __name__ == '__main__':
     ohe.fit([[1],[0]])
     X,y = datasets.make_moons(n_samples=100, noise=0.2)
     y = ohe.transform(y.reshape(-1, 1)).toarray()
+    print(y)
     model = ANN_Multi([2,3,2])
     model.fit(X[:80],y[:80], ANN_Multi.active_simoid)
     # model.plot_decision_boundary(X,y)
